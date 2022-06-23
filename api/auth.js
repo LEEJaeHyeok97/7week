@@ -79,6 +79,7 @@ router.post('/login', async(req, res) => {
             if(compares){
 
             const newUserToken = jwt.sign({
+                id: user[0].id,
                 email: req.body.email,
                 password: req.body.password,
             }, process.env.JWT_SECRET, {
