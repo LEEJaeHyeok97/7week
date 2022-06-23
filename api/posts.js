@@ -1,12 +1,14 @@
 import { Router } from "express";
 import { verify } from "jsonwebtoken";
+import app from ".";
 import { Posts } from "../models";
 import { verifyToken } from "./middlewares";
 
+
+
 const router = Router();
+const cors = require('cors');
 
-
-let index = 1;
 
 
 // tokenVerify
@@ -23,6 +25,7 @@ router.post('/info', verifyToken, (req, res) => {
 
 //글 목록 조회
 router.get('/', async(req, res) => {
+    res.header("Access-Control-Allow-Origin", "http://localhost:3000/api/posts");
     const {id, password} = req.body;
     //const { content } = req.body;
 
@@ -36,7 +39,7 @@ router.get('/', async(req, res) => {
 });
 
 
-//글 개별 항목 조회   !대충 짜놔서 글 생성 코드 만들고 실행하면서 로직을 다시 생각해 보아야함 
+//글 개별 항목 조회    
 router.get('/:postid', async(req, res) => {
     const {id, password} = req.decoded;
     const { postid } = req.params;
@@ -58,21 +61,22 @@ router.get('/:postid', async(req, res) => {
 });
 
 //글 생성
-router.post('/', async(req, res) => {
+router.post('/', verifyToken, (req, res) => {
     //const t = parseInt(req.header("X-User-Id")); //user-Id headers < 복수 === 배열로 만들어짐 , headers 배열이 parseInt 불가능!
-    const t = req.decoded.id;
-    console.log(t)
-    const post_list = await Posts.create({
-        content : req.body.content,
-        writer : t
-        // index++말고 id로 받아오는 방법을 고민 해보았으나 오류가 났음 -> 수정함
+    const { content } = req.body;
+    const writer = req.decoded.id;
+    
+    Posts.create({
+        content : content,
+        writer : writer,
+        
     });
 
     return res.json({
         data: {
             post: {
                 //post_list.id 이거 리스트 인덱스값이 출력됨
-                id: post_list.id
+                id: writer
             }
         }
     });
@@ -80,7 +84,7 @@ router.post('/', async(req, res) => {
 
 
 //특정 글 수정  
-router.put('/:postId', async(req, res) => {
+router.put('/:postId', verifyToken, async(req, res) => {
     //const userId = parseInt(req.header("X-User-Id"));
     const userId = req.decoded.id;
     const { userX } = req.params;
@@ -113,7 +117,7 @@ router.put('/:postId', async(req, res) => {
 
 
 //특정 글 삭제
-router.delete('/:postId', async(req, res) => {
+router.delete('/:postId', verifyToken, async(req, res) => {
     const { user } = req.params;
     //console.log(typeof(user), "asdasdaddad")
     const userId = req.decoded.id;
